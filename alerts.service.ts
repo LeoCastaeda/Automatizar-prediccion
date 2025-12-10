@@ -1,5 +1,6 @@
-import { prisma } from "../config/prisma.js";
-import { AlertType } from "@prisma/client";
+import { prisma } from "./prisma.js";
+import { AlertType } from "./types.js";
+import { getSimplePrice } from "./coingecko.service.js";
 
 export async function createAlert(params: {
   userId: number;
@@ -9,7 +10,27 @@ export async function createAlert(params: {
   targetValue?: number;
   percentage?: number;
 }) {
-  return prisma.alert.create({ data: params });
+  // Get current price
+  let initialPrice: number | null = null;
+  try {
+    const prices = await getSimplePrice([params.symbol], params.currency);
+    initialPrice = prices[params.symbol]?.[params.currency] ?? null;
+  } catch (error) {
+    console.error("Failed to get initial price, continuing without it:", error instanceof Error ? error.message : error);
+    // Continue without initial price - alert will still be created
+  }
+
+  return prisma.alert.create({
+    data: {
+      userId: params.userId,
+      symbol: params.symbol,
+      currency: params.currency,
+      type: params.type,
+      targetValue: params.targetValue ?? null,
+      percentage: params.percentage ?? null,
+      initialPrice,
+    },
+  });
 }
 
 export async function listAlerts(userId?: number) {

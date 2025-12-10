@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
-import { asyncHandler } from "../utils/errors.js";
-import { createAlert, listAlerts, deactivateAlert } from "../services/alerts.service.js";
-import { AlertType } from "@prisma/client";
+import { asyncHandler } from "./errors.js";
+import { createAlert, listAlerts, deactivateAlert } from "./alerts.service.js";
+import { AlertType } from "./types.js";
 
 const router = Router();
 
@@ -13,8 +13,8 @@ const createSchema = z.object({
   type: z.nativeEnum(AlertType),
   targetValue: z.number().optional(),
   percentage: z.number().optional()
-}).refine(v => (v.type === "PRICE" && typeof v.targetValue === "number") || (v.type === "CHANGE_%" && typeof v.percentage === "number"), {
-  message: "Para PRICE aporta targetValue; para CHANGE_% aporta percentage"
+}).refine(v => (v.type === "PRICE" && typeof v.targetValue === "number") || (v.type === "CHANGE_PERCENT" && typeof v.percentage === "number"), {
+  message: "Para PRICE aporta targetValue; para CHANGE_PERCENT aporta percentage"
 });
 
 router.post("/", asyncHandler(async (req, res) => {
@@ -26,7 +26,7 @@ router.post("/", asyncHandler(async (req, res) => {
 router.get("/", asyncHandler(async (req, res) => {
   const userId = req.query.userId ? Number(req.query.userId) : undefined;
   const alerts = await listAlerts(userId);
-  res.json({ alerts });
+  res.json(alerts);
 }));
 
 router.post("/:id/deactivate", asyncHandler(async (req, res) => {
