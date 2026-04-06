@@ -10,8 +10,8 @@ router.get("/:symbol", asyncHandler(async (req, res) => {
   
   const data = await getHistoricalData(
     symbol, 
-    currency as string, 
-    parseInt(days as string)
+    parseInt(days as string),
+    currency as string
   );
   
   res.json({ data });

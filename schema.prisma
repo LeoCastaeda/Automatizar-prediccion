@@ -3,38 +3,33 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model Alert {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  symbol          String
+  currency        String
+  type            String    // AlertType: PRICE or CHANGE_PERCENT (renamed from CHANGE_% for valid TypeScript identifier)
+  targetValue     Float?
+  percentage      Float?
+  isActive        Boolean   @default(true)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  initialPrice    Float?
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@index([symbol, currency, type])
 }
 
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String?
-  alerts    Alert[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Alert {
-  id           Int      @id @default(autoincrement())
-  userId       Int
-  symbol       String   // ej: "bitcoin"
-  currency     String   // ej: "eur"
-  type         AlertType
-  targetValue  Float?   // para PRICE
-  percentage   Float?   // para CHANGE_% (por ejemplo +5 o -3)
-  isActive     Boolean  @default(true)
-  lastTriggeredAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([symbol, currency, type])
-}
-
-enum AlertType {
-  PRICE      // alerta por precio objetivo
-  CHANGE_%   // alerta por variación porcentual desde la creación
+  updatedAt DateTime @default(now()) @updatedAt
+  alerts    Alert[]
 }

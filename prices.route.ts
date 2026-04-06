@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { asyncHandler } from "../utils/errors.js";
-import { getSimplePrice } from "../services/coingecko.service.js";
+import { asyncHandler } from "./errors.js";
+import { getSimplePrice } from "./coingecko.service.js";
 
 const router = Router();
 

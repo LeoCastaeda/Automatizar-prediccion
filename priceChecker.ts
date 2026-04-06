@@ -1,7 +1,7 @@
-import { prisma } from "../config/prisma.js";
-import { getSimplePrice } from "../services/coingecko.service.js";
-import { sendEmail, sendTelegram } from "../services/notify.service.js";
-import { AlertType } from "@prisma/client";
+import { prisma } from "./prisma.js";
+import { getSimplePrice } from "./coingecko.service.js";
+import { sendEmail, sendTelegram } from "./notify.service.js";
+import { AlertType } from "./types/alert.js";
 
 export async function runPriceChecker() {
   const active = await prisma.alert.findMany({ where: { isActive: true }, include: { user: true } });
@@ -26,7 +26,7 @@ export async function runPriceChecker() {
       if (alert.type === AlertType.PRICE && alert.targetValue != null) {
         shouldTrigger = (p <= alert.targetValue) || (p >= alert.targetValue);
         message = `Precio actual de ${alert.symbol} en ${currency.toUpperCase()}: ${p}. Objetivo: ${alert.targetValue}`;
-      } else if (alert.type === AlertType.CHANGE_% && alert.percentage != null) {
+      } else if (alert.type === AlertType.CHANGE_PERCENT && alert.percentage != null) {
         // Para implementar: almacenar precio base en el modelo y comparar
         continue;
       }

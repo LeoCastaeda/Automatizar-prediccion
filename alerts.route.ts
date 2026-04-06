@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "./errors.js";
 import { createAlert, listAlerts, deactivateAlert } from "./alerts.service.js";
-import { AlertType } from "./types.js";
+import { AlertType } from "./types/alert.js";
 
 const router = Router();
 

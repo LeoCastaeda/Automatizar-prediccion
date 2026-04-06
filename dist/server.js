@@ -1,0 +1,33 @@
+import "./env";
+import express from "express";
+import { ENV } from "./env";
+import pricesRoute from "./prices.route";
+import alertsRoute from "./alerts.route";
+import { apiKeyGuard } from "./auth";
+import { HttpError } from "./errors";
+import { runPriceChecker } from "./priceChecker";
+const app = express();
+app.use(express.json());
+// Serve static files from public directory
+app.use(express.static("public"));
+// Salud
+app.get("/health", (_req, res) => {
+    res.json({ ok: true });
+});
+// Guard sencillo por API key
+app.use("/api", apiKeyGuard);
+app.use("/api/prices", pricesRoute);
+app.use("/api/alerts", alertsRoute);
+// Manejo de errores
+app.use((err, _req, res, _next) => {
+    const status = err instanceof HttpError ? err.status : 500;
+    const message = err instanceof Error ? err.message : "Internal Server Error";
+    res.status(status).json({ error: message });
+});
+app.listen(ENV.PORT, () => {
+    console.log(`Server listening on http://localhost:${ENV.PORT}`);
+});
+// Job en intervalo (cada 60s). En producción, usa un scheduler/cron real.
+setInterval(() => {
+    runPriceChecker().catch(() => { });
+}, 60_000);

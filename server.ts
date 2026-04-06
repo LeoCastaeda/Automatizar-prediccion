@@ -1,27 +1,36 @@
-import "./config/env.js";
-import express from "express";
-import { ENV } from "./config/env.js";
-import pricesRoute from "./routes/prices.route.js";
-import alertsRoute from "./routes/alerts.route.js";
-import { apiKeyGuard } from "./utils/auth.js";
-import { HttpError } from "./utils/errors.js";
-import { runPriceChecker } from "./jobs/priceChecker.js";
+import "./env";
+import express, { Request, Response, NextFunction } from "express";
+import { ENV } from "./env";
+import pricesRoute from "./prices.route";
+import alertsRoute from "./alerts.route";
+import usersRoute from "./users.route";
+import { apiKeyGuard } from "./auth";
+import { HttpError } from "./errors";
+import { runPriceChecker } from "./priceChecker";
 
 const app = express();
 app.use(express.json());
 
+// Serve static files from public directory
+app.use(express.static("public"));
+
 // Salud
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/health", (_req: Request, res: Response) => {
+  res.json({ ok: true });
+});
 
 // Guard sencillo por API key
 app.use("/api", apiKeyGuard);
 app.use("/api/prices", pricesRoute);
 app.use("/api/alerts", alertsRoute);
+app.use("/api/users", usersRoute);
 
 // Manejo de errores
-app.use((err: any, _req: any, res: any, _next: any) => {
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   const status = err instanceof HttpError ? err.status : 500;
-  const message = err?.message || "Internal Server Error";
+  const message =
+    err instanceof Error ? err.message : "Internal Server Error";
+
   res.status(status).json({ error: message });
 });
 

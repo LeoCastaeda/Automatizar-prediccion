@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Alert System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 2rem; margin-bottom: 2rem; color: #38bdf8; }
+    h2 { font-size: 1.5rem; margin: 2rem 0 1rem; color: #94a3b8; }
+    .card { background: #1e293b; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.5rem; color: #cbd5e1; font-weight: 500; }
+    input, select { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #e2e8f0; font-size: 1rem; }
+    input:focus, select:focus { outline: none; border-color: #38bdf8; }
+    button { background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #0ea5e9; }
+    button:disabled { background: #475569; cursor: not-allowed; }
+    .alert-item { background: #0f172a; padding: 1rem; border-radius: 4px; margin-bottom: 0.75rem; border-left: 4px solid #38bdf8; }
+    .alert-item.inactive { border-left-color: #64748b; opacity: 0.6; }
+    .alert-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .alert-symbol { font-weight: 600; color: #38bdf8; font-size: 1.1rem; }
+    .alert-details { color: #94a3b8; font-size: 0.9rem; }
+    .btn-deactivate { background: #ef4444; padding: 0.5rem 1rem; font-size: 0.875rem; }
+    .btn-deactivate:hover { background: #dc2626; }
+    .user-item { background: #0f172a; padding: 1rem; border-radius: 4px; margin-bottom: 0.75rem; border-left: 4px solid #10b981; cursor: pointer; }
+    .user-item:hover { background: #1e293b; }
+    .user-item.selected { border-left-color: #38bdf8; background: #1e293b; }
+    .user-email { font-weight: 600; color: #10b981; }
+    .user-name { color: #94a3b8; font-size: 0.9rem; }
+    .user-alerts { color: #64748b; font-size: 0.85rem; margin-top: 0.25rem; }
+    .price-display { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .price-card { background: #0f172a; padding: 1rem; border-radius: 4px; text-align: center; }
+    .price-symbol { color: #94a3b8; font-size: 0.875rem; text-transform: uppercase; }
+    .price-value { color: #38bdf8; font-size: 1.5rem; font-weight: 600; margin-top: 0.5rem; }
+    .error { background: #7f1d1d; border: 1px solid #991b1b; color: #fca5a5; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+    .success { background: #14532d; border: 1px solid #166534; color: #86efac; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+    .loading { color: #94a3b8; text-align: center; padding: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Crypto Alert System</h1>
+    
+    <div class="card">
+      <h2>👥 Users</h2>
+      <div id="usersMessage"></div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <div>
+          <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 1rem;">Existing Users</h3>
+          <div id="usersList">
+            <div class="loading">Loading users...</div>
+          </div>
+        </div>
+        <div>
+          <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 1rem;">Create New User</h3>
+          <form id="createUserForm">
+            <div class="form-group">
+              <label for="userEmail">Email</label>
+              <input type="email" id="userEmail" placeholder="user@example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="userName">Name (optional)</label>
+              <input type="text" id="userName" placeholder="John Doe">
+            </div>
+            <button type="submit">Create User</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Current Prices</h2>
+      <div id="prices" class="price-display">
+        <div class="loading">Loading prices...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>➕ Create Alert</h2>
+      <div id="createMessage"></div>
+      <form id="createAlertForm">
+        <div class="form-group">
+          <label for="userId">User ID</label>
+          <input type="number" id="userId" value="1" required>
+        </div>
+        <div class="form-group">
+          <label for="symbol">Cryptocurrency Symbol</label>
+          <input type="text" id="symbol" placeholder="e.g., bitcoin, ethereum" required>
+        </div>
+        <div class="form-group">
+          <label for="currency">Currency</label>
+          <input type="text" id="currency" value="usd" required>
+        </div>
+        <div class="form-group">
+          <label for="type">Alert Type</label>
+          <select id="type" required>
+            <option value="PRICE">Price Alert</option>
+            <option value="CHANGE_PERCENT">Percentage Change Alert</option>
+          </select>
+        </div>
+        <div class="form-group" id="targetValueGroup">
+          <label for="targetValue">Target Price</label>
+          <input type="number" id="targetValue" step="0.01" placeholder="e.g., 50000">
+        </div>
+        <div class="form-group" id="percentageGroup" style="display: none;">
+          <label for="percentage">Percentage Change</label>
+          <input type="number" id="percentage" step="0.01" placeholder="e.g., 5">
+        </div>
+        <button type="submit">Create Alert</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>🔔 My Alerts</h2>
+      <div id="alertsMessage"></div>
+      <div id="alertsList">
+        <div class="loading">Loading alerts...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = 'test-api-key-123'; // Change this to your actual API key
+    const API_BASE = '/api';
+    let selectedUserId = 1; // Default user ID
+
+    async function fetchAPI(endpoint, options = {}) {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          ...options.headers
+        }
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(error.error || 'Request failed');
+      }
+      return response.json();
+    }
+
+    async function loadUsers() {
+      try {
+        const { users } = await fetchAPI('/users');
+        const usersList = document.getElementById('usersList');
+        if (!users || users.length === 0) {
+          usersList.innerHTML = '<div class="loading">No users yet. Create one!</div>';
+          return;
+        }
+        usersList.innerHTML = users.map(user => `
+          <div class="user-item ${user.id === selectedUserId ? 'selected' : ''}" onclick="selectUser(${user.id})">
+            <div class="user-email">${user.email}</div>
+            ${user.name ? `<div class="user-name">${user.name}</div>` : ''}
+            <div class="user-alerts">ID: ${user.id} | Alerts: ${user._count.alerts}</div>
+          </div>
+        `).join('');
+      } catch (error) {
+        document.getElementById('usersList').innerHTML = `<div class="error">Failed to load users: ${error.message}</div>`;
+      }
+    }
+
+    function selectUser(userId) {
+      selectedUserId = userId;
+      document.getElementById('userId').value = userId;
+      loadUsers();
+      loadAlerts();
+    }
+
+    async function loadPrices() {
+      try {
+        const { data } = await fetchAPI('/prices/simple?symbols=bitcoin,ethereum,cardano&currency=usd');
+        const pricesDiv = document.getElementById('prices');
+        pricesDiv.innerHTML = Object.entries(data).map(([symbol, prices]) => `
+          <div class="price-card">
+            <div class="price-symbol">${symbol}</div>
+            <div class="price-value">$${prices.usd.toLocaleString()}</div>
+          </div>
+        `).join('');
+      } catch (error) {
+        const pricesDiv = document.getElementById('prices');
+        if (error.message.includes('429')) {
+          pricesDiv.innerHTML = '<div style="color: #fbbf24; text-align: center; padding: 1rem;">⚠️ Rate limit reached. Prices will refresh in 60 seconds.</div>';
+        } else {
+          pricesDiv.innerHTML = `<div class="error">Failed to load prices: ${error.message}</div>`;
+        }
+      }
+    }
+
+    async function loadAlerts() {
+      try {
+        const alerts = await fetchAPI(`/alerts?userId=${selectedUserId}`);
+        const alertsList = document.getElementById('alertsList');
+        if (!alerts || alerts.length === 0) {
+          alertsList.innerHTML = '<div class="loading">No alerts yet for this user. Create one above!</div>';
+          return;
+        }
+        alertsList.innerHTML = alerts.map(alert => `
+          <div class="alert-item ${alert.active ? '' : 'inactive'}">
+            <div class="alert-header">
+              <span class="alert-symbol">${alert.symbol.toUpperCase()}</span>
+              ${alert.active ? `<button class="btn-deactivate" onclick="deactivateAlert(${alert.id})">Deactivate</button>` : '<span style="color: #64748b;">Inactive</span>'}
+            </div>
+            <div class="alert-details">
+              Type: ${alert.type} | Target: ${alert.targetValue || alert.percentage || 'N/A'} | Currency: ${alert.currency}
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        document.getElementById('alertsList').innerHTML = `<div class="error">Failed to load alerts: ${error.message}</div>`;
+      }
+    }
+
+    async function deactivateAlert(id) {
+      try {
+        await fetchAPI(`/alerts/${id}/deactivate`, { method: 'POST' });
+        showMessage('alertsMessage', 'Alert deactivated successfully!', 'success');
+        loadAlerts();
+      } catch (error) {
+        showMessage('alertsMessage', `Failed to deactivate alert: ${error.message}`, 'error');
+      }
+    }
+
+    function showMessage(elementId, message, type) {
+      const div = document.getElementById(elementId);
+      div.innerHTML = `<div class="${type}">${message}</div>`;
+      setTimeout(() => div.innerHTML = '', 5000);
+    }
+
+    document.getElementById('createAlertForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const type = document.getElementById('type').value;
+      const formData = {
+        userId: parseInt(document.getElementById('userId').value),
+        symbol: document.getElementById('symbol').value,
+        currency: document.getElementById('currency').value,
+        type: type
+      };
+      
+      if (type === 'PRICE') {
+        formData.targetValue = parseFloat(document.getElementById('targetValue').value);
+      } else {
+        formData.percentage = parseFloat(document.getElementById('percentage').value);
+      }
+      
+      try {
+        await fetchAPI('/alerts', {
+          method: 'POST',
+          body: JSON.stringify(formData)
+        });
+        showMessage('createMessage', 'Alert created successfully!', 'success');
+        e.target.reset();
+        loadAlerts();
+      } catch (error) {
+        showMessage('createMessage', `Failed to create alert: ${error.message}`, 'error');
+      }
+    });
+
+    // Toggle form fields based on alert type
+    document.getElementById('type').addEventListener('change', (e) => {
+      const isPriceAlert = e.target.value === 'PRICE';
+      document.getElementById('targetValueGroup').style.display = isPriceAlert ? 'block' : 'none';
+      document.getElementById('percentageGroup').style.display = isPriceAlert ? 'none' : 'block';
+    });
+
+    document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = {
+        email: document.getElementById('userEmail').value,
+        name: document.getElementById('userName').value || undefined
+      };
+      
+      try {
+        const { user } = await fetchAPI('/users', {
+          method: 'POST',
+          body: JSON.stringify(formData)
+        });
+        showMessage('usersMessage', `User created successfully! ID: ${user.id}`, 'success');
+        e.target.reset();
+        loadUsers();
+        selectUser(user.id);
+      } catch (error) {
+        showMessage('usersMessage', `Failed to create user: ${error.message}`, 'error');
+      }
+    });
+
+    // Load data on page load
+    loadUsers();
+    loadPrices();
+    loadAlerts();
+    
+    // Refresh prices every 60 seconds (reduced to avoid rate limits)
+    setInterval(loadPrices, 60000);
+  </script>
+</body>
+</html>

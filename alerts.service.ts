@@ -1,5 +1,5 @@
 import { prisma } from "./prisma.js";
-import { AlertType } from "./types.js";
+import { AlertType } from "./types/alert.js";
 import { getSimplePrice } from "./coingecko.service.js";
 
 export async function createAlert(params: {
