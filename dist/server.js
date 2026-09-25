@@ -3,9 +3,11 @@ import express from "express";
 import { ENV } from "./env";
 import pricesRoute from "./prices.route";
 import alertsRoute from "./alerts.route";
+import usersRoute from "./users.route";
 import { apiKeyGuard } from "./auth";
 import { HttpError } from "./errors";
 import { runPriceChecker } from "./priceChecker";
+import { historicalRouter } from "./historical.route";
 const app = express();
 app.use(express.json());
 // Serve static files from public directory
@@ -17,7 +19,9 @@ app.get("/health", (_req, res) => {
 // Guard sencillo por API key
 app.use("/api", apiKeyGuard);
 app.use("/api/prices", pricesRoute);
+app.use("/api/historical", historicalRouter);
 app.use("/api/alerts", alertsRoute);
+app.use("/api/users", usersRoute);
 // Manejo de errores
 app.use((err, _req, res, _next) => {
     const status = err instanceof HttpError ? err.status : 500;

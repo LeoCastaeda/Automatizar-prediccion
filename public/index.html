@@ -1,299 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Alert System</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CryptoWatch · Alertas</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { font-size: 2rem; margin-bottom: 2rem; color: #38bdf8; }
-    h2 { font-size: 1.5rem; margin: 2rem 0 1rem; color: #94a3b8; }
-    .card { background: #1e293b; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; }
-    .form-group { margin-bottom: 1rem; }
-    label { display: block; margin-bottom: 0.5rem; color: #cbd5e1; font-weight: 500; }
-    input, select { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #e2e8f0; font-size: 1rem; }
-    input:focus, select:focus { outline: none; border-color: #38bdf8; }
-    button { background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 1rem; }
-    button:hover { background: #0ea5e9; }
-    button:disabled { background: #475569; cursor: not-allowed; }
-    .alert-item { background: #0f172a; padding: 1rem; border-radius: 4px; margin-bottom: 0.75rem; border-left: 4px solid #38bdf8; }
-    .alert-item.inactive { border-left-color: #64748b; opacity: 0.6; }
-    .alert-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-    .alert-symbol { font-weight: 600; color: #38bdf8; font-size: 1.1rem; }
-    .alert-details { color: #94a3b8; font-size: 0.9rem; }
-    .btn-deactivate { background: #ef4444; padding: 0.5rem 1rem; font-size: 0.875rem; }
-    .btn-deactivate:hover { background: #dc2626; }
-    .user-item { background: #0f172a; padding: 1rem; border-radius: 4px; margin-bottom: 0.75rem; border-left: 4px solid #10b981; cursor: pointer; }
-    .user-item:hover { background: #1e293b; }
-    .user-item.selected { border-left-color: #38bdf8; background: #1e293b; }
-    .user-email { font-weight: 600; color: #10b981; }
-    .user-name { color: #94a3b8; font-size: 0.9rem; }
-    .user-alerts { color: #64748b; font-size: 0.85rem; margin-top: 0.25rem; }
-    .price-display { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
-    .price-card { background: #0f172a; padding: 1rem; border-radius: 4px; text-align: center; }
-    .price-symbol { color: #94a3b8; font-size: 0.875rem; text-transform: uppercase; }
-    .price-value { color: #38bdf8; font-size: 1.5rem; font-weight: 600; margin-top: 0.5rem; }
-    .error { background: #7f1d1d; border: 1px solid #991b1b; color: #fca5a5; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
-    .success { background: #14532d; border: 1px solid #166534; color: #86efac; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
-    .loading { color: #94a3b8; text-align: center; padding: 2rem; }
+    :root{color-scheme:dark;--bg:#07111f;--surface:#101d31;--surface2:#14243b;--line:#29415d;--text:#edf5ff;--muted:#9bb0c8;--blue:#58b7ff;--green:#59e3ad;--red:#ff8490;--yellow:#ffc766}*{box-sizing:border-box}body{margin:0;min-width:320px;font:15px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--text);background:radial-gradient(circle at 80% -10%,#1b518244,transparent 32rem),var(--bg)}button,input,select{font:inherit}button{cursor:pointer}.shell{max-width:1180px;margin:auto;padding:28px 20px 56px}header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:28px}.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#64d8ff,#4375ff);box-shadow:0 10px 30px #357dff55;font-size:22px}h1{margin:0;font-size:22px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:13px;margin-top:2px}.connection{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 4px #ffc76622}.dot.live{background:var(--green);box-shadow:0 0 0 4px #59e3ad22}.panel{border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#14243be8,#0d192be8);box-shadow:0 18px 55px #0000002b}.api-panel{padding:18px;display:flex;gap:12px;align-items:end;margin-bottom:20px}.api-panel label{flex:1;display:grid;gap:6px;color:var(--muted);font-size:12px;font-weight:650;text-transform:uppercase;letter-spacing:.07em}input,select{width:100%;border:1px solid var(--line);border-radius:10px;background:#091628;color:var(--text);padding:11px 12px;outline:none}input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #58b7ff1c}button{border:0;border-radius:10px;padding:11px 15px;font-weight:700;color:#061120;background:var(--blue);transition:.18s transform,.18s filter}button:hover{filter:brightness(1.08)}button:active{transform:translateY(1px)}button.danger{color:#fff;background:#c44757}.hidden{display:none!important}.notice{margin:0 0 20px;padding:12px 14px;border-radius:11px;border:1px solid #ff849055;background:#5a1e2d77;color:#ffd1d6}.notice.success{border-color:#59e3ad55;background:#123b3577;color:#b5ffe1}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}.stat{padding:17px}.stat small{color:var(--muted);display:block;margin-bottom:7px}.stat strong{font-size:23px;letter-spacing:-.6px}.stat strong.green{color:var(--green)}.grid{display:grid;grid-template-columns:1.12fr .88fr;gap:20px}.section{padding:20px}.section h2{margin:0 0 5px;font-size:17px}.section>p{margin:0 0 17px;color:var(--muted);font-size:13px}.prices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.price{padding:14px;border-radius:13px;background:#09182a;border:1px solid #203955}.price span{color:var(--muted);font-size:12px;text-transform:uppercase}.price b{display:block;margin-top:7px;font-size:17px}.skeleton{color:var(--muted);font-size:13px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px;color:var(--muted);font-size:12px;font-weight:650}.field.full{grid-column:1/-1}.form button{grid-column:1/-1;margin-top:3px}.users,.alerts{display:grid;gap:9px}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px;border:1px solid #213a58;border-radius:12px;background:#0a1728}.item.selected{border-color:var(--blue);background:#102442}.item-title{font-weight:700}.item-meta{color:var(--muted);font-size:12px;margin-top:2px}.select-user{padding:7px 10px;background:#233b58;color:var(--text);font-size:12px}.badge{border-radius:999px;padding:4px 8px;background:#173c36;color:var(--green);font-size:11px;font-weight:700}.empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.alert-value{text-align:right}.alert-value b{display:block;color:var(--yellow)}.alert-value small{color:var(--muted)}@media(max-width:780px){.shell{padding:20px 14px 40px}header{align-items:flex-start}.api-panel{display:grid;align-items:stretch}.stats,.prices{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.form{grid-template-columns:1fr}.field.full{grid-column:auto}.form button{grid-column:auto}.connection{padding-top:5px}.stat strong{font-size:20px}}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🚀 Crypto Alert System</h1>
-    
-    <div class="card">
-      <h2>👥 Users</h2>
-      <div id="usersMessage"></div>
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-        <div>
-          <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 1rem;">Existing Users</h3>
-          <div id="usersList">
-            <div class="loading">Loading users...</div>
-          </div>
-        </div>
-        <div>
-          <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 1rem;">Create New User</h3>
-          <form id="createUserForm">
-            <div class="form-group">
-              <label for="userEmail">Email</label>
-              <input type="email" id="userEmail" placeholder="user@example.com" required>
-            </div>
-            <div class="form-group">
-              <label for="userName">Name (optional)</label>
-              <input type="text" id="userName" placeholder="John Doe">
-            </div>
-            <button type="submit">Create User</button>
-          </form>
-        </div>
-      </div>
+  <main class="shell">
+    <header><div class="brand"><div class="logo">₿</div><div><h1>CryptoWatch</h1><div class="sub">Control de precios y alertas</div></div></div><div class="connection"><i class="dot" id="statusDot"></i><span id="statusText">Conecta tu API</span></div></header>
+    <section class="panel api-panel"><label>Clave de acceso API<input id="apiKey" type="password" autocomplete="off" placeholder="Introduce tu x-api-key" /></label><button id="connect">Conectar</button></section>
+    <div id="message" class="notice hidden" role="alert"></div>
+    <section class="stats"><div class="panel stat"><small>Usuario seleccionado</small><strong id="selectedUser">Sin seleccionar</strong></div><div class="panel stat"><small>Alertas activas</small><strong class="green" id="alertCount">—</strong></div><div class="panel stat"><small>Actualización de precios</small><strong id="updatedAt">—</strong></div></section>
+    <div class="grid">
+      <section class="panel section"><h2>Mercado</h2><p>Valores en USD de CoinGecko. Se actualizan cada minuto.</p><div id="prices" class="prices"><span class="skeleton">Conecta la API para consultar precios.</span></div></section>
+      <section class="panel section"><h2>Nueva alerta</h2><p>La alerta se desactiva al alcanzar el objetivo.</p><form id="alertForm" class="form"><label class="field">Criptomoneda<input id="symbol" required placeholder="bitcoin" value="bitcoin" /></label><label class="field">Divisa<select id="currency"><option value="usd">USD</option><option value="eur">EUR</option></select></label><label class="field full">Tipo<select id="alertType"><option value="PRICE">Precio objetivo</option><option value="CHANGE_PERCENT">Cambio porcentual</option></select></label><label class="field full" id="targetField">Precio objetivo<input id="target" type="number" min="0" step="any" required placeholder="60000" /></label><label class="field full hidden" id="percentageField">Variación porcentual<input id="percentage" type="number" min="0" step="any" placeholder="5" /></label><button>Crear alerta</button></form></section>
+      <section class="panel section"><h2>Usuarios</h2><p>Crea o selecciona la cuenta que recibirá las alertas.</p><form id="userForm" class="form"><label class="field">Correo<input id="email" type="email" required placeholder="nombre@correo.com" /></label><label class="field">Nombre<input id="name" placeholder="Nombre opcional" /></label><button>Crear usuario</button></form><div id="users" class="users" style="margin-top:16px"></div></section>
+      <section class="panel section"><h2>Alertas activas</h2><p id="alertsCaption">Selecciona un usuario para ver sus alertas.</p><div id="alerts" class="alerts"><div class="empty">Aún no hay alertas para mostrar.</div></div></section>
     </div>
-
-    <div class="card">
-      <h2>📊 Current Prices</h2>
-      <div id="prices" class="price-display">
-        <div class="loading">Loading prices...</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>➕ Create Alert</h2>
-      <div id="createMessage"></div>
-      <form id="createAlertForm">
-        <div class="form-group">
-          <label for="userId">User ID</label>
-          <input type="number" id="userId" value="1" required>
-        </div>
-        <div class="form-group">
-          <label for="symbol">Cryptocurrency Symbol</label>
-          <input type="text" id="symbol" placeholder="e.g., bitcoin, ethereum" required>
-        </div>
-        <div class="form-group">
-          <label for="currency">Currency</label>
-          <input type="text" id="currency" value="usd" required>
-        </div>
-        <div class="form-group">
-          <label for="type">Alert Type</label>
-          <select id="type" required>
-            <option value="PRICE">Price Alert</option>
-            <option value="CHANGE_PERCENT">Percentage Change Alert</option>
-          </select>
-        </div>
-        <div class="form-group" id="targetValueGroup">
-          <label for="targetValue">Target Price</label>
-          <input type="number" id="targetValue" step="0.01" placeholder="e.g., 50000">
-        </div>
-        <div class="form-group" id="percentageGroup" style="display: none;">
-          <label for="percentage">Percentage Change</label>
-          <input type="number" id="percentage" step="0.01" placeholder="e.g., 5">
-        </div>
-        <button type="submit">Create Alert</button>
-      </form>
-    </div>
-
-    <div class="card">
-      <h2>🔔 My Alerts</h2>
-      <div id="alertsMessage"></div>
-      <div id="alertsList">
-        <div class="loading">Loading alerts...</div>
-      </div>
-    </div>
-  </div>
-
+  </main>
   <script>
-    const API_KEY = 'test-api-key-123'; // Change this to your actual API key
-    const API_BASE = '/api';
-    let selectedUserId = 1; // Default user ID
-
-    async function fetchAPI(endpoint, options = {}) {
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
-          ...options.headers
-        }
-      });
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(error.error || 'Request failed');
-      }
-      return response.json();
-    }
-
-    async function loadUsers() {
-      try {
-        const { users } = await fetchAPI('/users');
-        const usersList = document.getElementById('usersList');
-        if (!users || users.length === 0) {
-          usersList.innerHTML = '<div class="loading">No users yet. Create one!</div>';
-          return;
-        }
-        usersList.innerHTML = users.map(user => `
-          <div class="user-item ${user.id === selectedUserId ? 'selected' : ''}" onclick="selectUser(${user.id})">
-            <div class="user-email">${user.email}</div>
-            ${user.name ? `<div class="user-name">${user.name}</div>` : ''}
-            <div class="user-alerts">ID: ${user.id} | Alerts: ${user._count.alerts}</div>
-          </div>
-        `).join('');
-      } catch (error) {
-        document.getElementById('usersList').innerHTML = `<div class="error">Failed to load users: ${error.message}</div>`;
-      }
-    }
-
-    function selectUser(userId) {
-      selectedUserId = userId;
-      document.getElementById('userId').value = userId;
-      loadUsers();
-      loadAlerts();
-    }
-
-    async function loadPrices() {
-      try {
-        const { data } = await fetchAPI('/prices/simple?symbols=bitcoin,ethereum,cardano&currency=usd');
-        const pricesDiv = document.getElementById('prices');
-        pricesDiv.innerHTML = Object.entries(data).map(([symbol, prices]) => `
-          <div class="price-card">
-            <div class="price-symbol">${symbol}</div>
-            <div class="price-value">$${prices.usd.toLocaleString()}</div>
-          </div>
-        `).join('');
-      } catch (error) {
-        const pricesDiv = document.getElementById('prices');
-        if (error.message.includes('429')) {
-          pricesDiv.innerHTML = '<div style="color: #fbbf24; text-align: center; padding: 1rem;">⚠️ Rate limit reached. Prices will refresh in 60 seconds.</div>';
-        } else {
-          pricesDiv.innerHTML = `<div class="error">Failed to load prices: ${error.message}</div>`;
-        }
-      }
-    }
-
-    async function loadAlerts() {
-      try {
-        const alerts = await fetchAPI(`/alerts?userId=${selectedUserId}`);
-        const alertsList = document.getElementById('alertsList');
-        if (!alerts || alerts.length === 0) {
-          alertsList.innerHTML = '<div class="loading">No alerts yet for this user. Create one above!</div>';
-          return;
-        }
-        alertsList.innerHTML = alerts.map(alert => `
-          <div class="alert-item ${alert.active ? '' : 'inactive'}">
-            <div class="alert-header">
-              <span class="alert-symbol">${alert.symbol.toUpperCase()}</span>
-              ${alert.active ? `<button class="btn-deactivate" onclick="deactivateAlert(${alert.id})">Deactivate</button>` : '<span style="color: #64748b;">Inactive</span>'}
-            </div>
-            <div class="alert-details">
-              Type: ${alert.type} | Target: ${alert.targetValue || alert.percentage || 'N/A'} | Currency: ${alert.currency}
-            </div>
-          </div>
-        `).join('');
-      } catch (error) {
-        document.getElementById('alertsList').innerHTML = `<div class="error">Failed to load alerts: ${error.message}</div>`;
-      }
-    }
-
-    async function deactivateAlert(id) {
-      try {
-        await fetchAPI(`/alerts/${id}/deactivate`, { method: 'POST' });
-        showMessage('alertsMessage', 'Alert deactivated successfully!', 'success');
-        loadAlerts();
-      } catch (error) {
-        showMessage('alertsMessage', `Failed to deactivate alert: ${error.message}`, 'error');
-      }
-    }
-
-    function showMessage(elementId, message, type) {
-      const div = document.getElementById(elementId);
-      div.innerHTML = `<div class="${type}">${message}</div>`;
-      setTimeout(() => div.innerHTML = '', 5000);
-    }
-
-    document.getElementById('createAlertForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const type = document.getElementById('type').value;
-      const formData = {
-        userId: parseInt(document.getElementById('userId').value),
-        symbol: document.getElementById('symbol').value,
-        currency: document.getElementById('currency').value,
-        type: type
-      };
-      
-      if (type === 'PRICE') {
-        formData.targetValue = parseFloat(document.getElementById('targetValue').value);
-      } else {
-        formData.percentage = parseFloat(document.getElementById('percentage').value);
-      }
-      
-      try {
-        await fetchAPI('/alerts', {
-          method: 'POST',
-          body: JSON.stringify(formData)
-        });
-        showMessage('createMessage', 'Alert created successfully!', 'success');
-        e.target.reset();
-        loadAlerts();
-      } catch (error) {
-        showMessage('createMessage', `Failed to create alert: ${error.message}`, 'error');
-      }
-    });
-
-    // Toggle form fields based on alert type
-    document.getElementById('type').addEventListener('change', (e) => {
-      const isPriceAlert = e.target.value === 'PRICE';
-      document.getElementById('targetValueGroup').style.display = isPriceAlert ? 'block' : 'none';
-      document.getElementById('percentageGroup').style.display = isPriceAlert ? 'none' : 'block';
-    });
-
-    document.getElementById('createUserForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = {
-        email: document.getElementById('userEmail').value,
-        name: document.getElementById('userName').value || undefined
-      };
-      
-      try {
-        const { user } = await fetchAPI('/users', {
-          method: 'POST',
-          body: JSON.stringify(formData)
-        });
-        showMessage('usersMessage', `User created successfully! ID: ${user.id}`, 'success');
-        e.target.reset();
-        loadUsers();
-        selectUser(user.id);
-      } catch (error) {
-        showMessage('usersMessage', `Failed to create user: ${error.message}`, 'error');
-      }
-    });
-
-    // Load data on page load
-    loadUsers();
-    loadPrices();
-    loadAlerts();
-    
-    // Refresh prices every 60 seconds (reduced to avoid rate limits)
-    setInterval(loadPrices, 60000);
+    const $=s=>document.querySelector(s);let selectedUserId=null;let apiKey=sessionStorage.getItem('crypto-api-key')||'';$('#apiKey').value=apiKey;
+    const escapeHtml=v=>String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    function notify(message,success=false){const el=$('#message');el.textContent=message;el.className='notice '+(success?'success':'');setTimeout(()=>el.className='notice hidden',5000)}
+    async function api(path,options={}){if(!apiKey)throw Error('Introduce la clave API para continuar.');const response=await fetch('/api'+path,{...options,headers:{'Content-Type':'application/json','x-api-key':apiKey,...options.headers}});const data=await response.json().catch(()=>({error:'Respuesta no válida del servidor'}));if(!response.ok)throw Error(data.error||'La solicitud no se pudo completar');return data}
+    function connected(){$('#statusDot').classList.add('live');$('#statusText').textContent='API conectada'}
+    async function loadPrices(){const {data}=await api('/prices/simple?symbols=bitcoin,ethereum,solana&currency=usd');$('#prices').innerHTML=Object.entries(data).map(([symbol,value])=>`<div class="price"><span>${escapeHtml(symbol)}</span><b>${new Intl.NumberFormat('es-ES',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(value.usd)}</b></div>`).join('')||'<div class="empty">No se recibieron precios.</div>';$('#updatedAt').textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}
+    async function loadUsers(){const {users}=await api('/users');$('#users').innerHTML=users.length?users.map(u=>`<article class="item ${u.id===selectedUserId?'selected':''}"><div><div class="item-title">${escapeHtml(u.name||u.email)}</div><div class="item-meta">${escapeHtml(u.email)} · ${u._count.alerts} alertas</div></div><button class="select-user" data-user="${u.id}">Seleccionar</button></article>`).join(''):'<div class="empty">Crea el primer usuario para empezar.</div>';document.querySelectorAll('[data-user]').forEach(b=>b.onclick=()=>selectUser(Number(b.dataset.user),users))}
+    async function selectUser(id,users=[]){selectedUserId=id;const user=users.find(u=>u.id===id);$('#selectedUser').textContent=user?(user.name||user.email):`Usuario #${id}`;await loadUsers();await loadAlerts()}
+    async function loadAlerts(){if(!selectedUserId)return;const alerts=await api(`/alerts?userId=${selectedUserId}`);$('#alertCount').textContent=alerts.length;$('#alertsCaption').textContent=`Alertas activas del usuario #${selectedUserId}.`;$('#alerts').innerHTML=alerts.length?alerts.map(a=>`<article class="item"><div><div class="item-title">${escapeHtml(a.symbol).toUpperCase()} <span class="badge">${a.type==='PRICE'?'PRECIO':'VARIACIÓN'}</span></div><div class="item-meta">${escapeHtml(a.currency).toUpperCase()} · creada ${new Date(a.createdAt).toLocaleDateString('es-ES')}</div></div><div class="alert-value"><b>${a.type==='PRICE'?a.targetValue:`±${a.percentage}%`}</b><button class="danger" data-alert="${a.id}">Desactivar</button></div></article>`).join(''):'<div class="empty">No hay alertas activas.</div>';document.querySelectorAll('[data-alert]').forEach(b=>b.onclick=()=>deactivateAlert(Number(b.dataset.alert)))}
+    async function deactivateAlert(id){try{await api(`/alerts/${id}/deactivate`,{method:'POST'});notify('Alerta desactivada.',true);loadAlerts();loadUsers()}catch(e){notify(e.message)}}
+    $('#connect').onclick=async()=>{apiKey=$('#apiKey').value.trim();sessionStorage.setItem('crypto-api-key',apiKey);try{await Promise.all([loadUsers(),loadPrices()]);connected();notify('Conexión realizada correctamente.',true)}catch(e){notify(e.message)}};
+    $('#userForm').onsubmit=async e=>{e.preventDefault();try{const {user}=await api('/users',{method:'POST',body:JSON.stringify({email:$('#email').value.trim(),name:$('#name').value.trim()||undefined})});e.target.reset();notify('Usuario creado.',true);await loadUsers();selectUser(user.id,[user])}catch(err){notify(err.message)}};
+    $('#alertType').onchange=e=>{const price=e.target.value==='PRICE';$('#targetField').classList.toggle('hidden',!price);$('#percentageField').classList.toggle('hidden',price);$('#target').required=price;$('#percentage').required=!price};
+    $('#alertForm').onsubmit=async e=>{e.preventDefault();if(!selectedUserId)return notify('Selecciona primero un usuario.');const type=$('#alertType').value;const body={userId:selectedUserId,symbol:$('#symbol').value.trim().toLowerCase(),currency:$('#currency').value,type};if(type==='PRICE')body.targetValue=Number($('#target').value);else body.percentage=Number($('#percentage').value);try{await api('/alerts',{method:'POST',body:JSON.stringify(body)});notify('Alerta creada. Se comprobará cada minuto.',true);e.target.reset();$('#symbol').value='bitcoin';loadAlerts();loadUsers()}catch(err){notify(err.message)}};
+    setInterval(()=>{if(apiKey)loadPrices().catch(()=>{})},60000);
   </script>
 </body>
 </html>

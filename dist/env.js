@@ -11,7 +11,7 @@ export const ENV = {
         FROM: process.env.SMTP_FROM || "Crypto Alerts <no-reply@example.com>"
     },
     TELEGRAM: {
-        TOKEN: process.env.TELEGRAM_BOT_TOKEN || "",
+        TOKEN: process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || "",
         CHAT_ID: process.env.TELEGRAM_CHAT_ID || ""
     }
 };

@@ -7,6 +7,7 @@ import usersRoute from "./users.route";
 import { apiKeyGuard } from "./auth";
 import { HttpError } from "./errors";
 import { runPriceChecker } from "./priceChecker";
+import { historicalRouter } from "./historical.route";
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,7 @@ app.get("/health", (_req: Request, res: Response) => {
 // Guard sencillo por API key
 app.use("/api", apiKeyGuard);
 app.use("/api/prices", pricesRoute);
+app.use("/api/historical", historicalRouter);
 app.use("/api/alerts", alertsRoute);
 app.use("/api/users", usersRoute);
 

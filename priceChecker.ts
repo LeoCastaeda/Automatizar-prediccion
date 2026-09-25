@@ -24,11 +24,17 @@ export async function runPriceChecker() {
       let message = "";
 
       if (alert.type === AlertType.PRICE && alert.targetValue != null) {
-        shouldTrigger = (p <= alert.targetValue) || (p >= alert.targetValue);
+        // The initial price determines whether the alert is waiting for an
+        // upward or downward crossing. Without it, default to an upward alert.
+        shouldTrigger = alert.initialPrice == null || alert.initialPrice <= alert.targetValue
+          ? p >= alert.targetValue
+          : p <= alert.targetValue;
         message = `Precio actual de ${alert.symbol} en ${currency.toUpperCase()}: ${p}. Objetivo: ${alert.targetValue}`;
       } else if (alert.type === AlertType.CHANGE_PERCENT && alert.percentage != null) {
-        // Para implementar: almacenar precio base en el modelo y comparar
-        continue;
+        if (alert.initialPrice == null || alert.initialPrice <= 0) continue;
+        const change = ((p - alert.initialPrice) / alert.initialPrice) * 100;
+        shouldTrigger = Math.abs(change) >= alert.percentage;
+        message = `Precio actual de ${alert.symbol} en ${currency.toUpperCase()}: ${p}. Variación: ${change.toFixed(2)}%. Objetivo: ±${alert.percentage}%`;
       }
 
       if (shouldTrigger) {
