@@ -4,11 +4,11 @@ dotenv.config();
 export async function resolveAvailablePort(preferredPort) {
     const startPort = Number.isFinite(preferredPort) && preferredPort > 0 ? preferredPort : 0;
     return await new Promise((resolve, reject) => {
-        const tester = net.createServer();
         const tryPort = (port) => {
+            const tester = net.createServer();
             tester.once("error", (error) => {
                 if ((error.code === "EADDRINUSE" || error.code === "EACCES") && port < 65535) {
-                    tryPort(port + 1);
+                    tester.close(() => tryPort(port + 1));
                     return;
                 }
                 if (error.code === "EADDRINUSE" && port >= 65535) {
@@ -22,7 +22,7 @@ export async function resolveAvailablePort(preferredPort) {
                 const portNumber = typeof address === "object" && address ? address.port : port;
                 tester.close(() => resolve(portNumber));
             });
-            tester.listen(port, "0.0.0.0");
+            tester.listen({ port, host: "127.0.0.1" });
         };
         tryPort(startPort);
     });

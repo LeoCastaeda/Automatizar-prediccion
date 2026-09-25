@@ -1,5 +1,6 @@
 import "./env.js";
 import express from "express";
+import serverless from "serverless-http";
 import { ENV, resolveAvailablePort } from "./env.js";
 import pricesRoute from "./prices.route.js";
 import alertsRoute from "./alerts.route.js";
@@ -34,8 +35,12 @@ async function startServer() {
         console.log(`Server listening on http://localhost:${port}`);
     });
 }
-startServer().catch((error) => {
-    console.error("Unable to start server:", error);
-    process.exit(1);
-});
-startAlertScheduler(60_000);
+export const handler = serverless(app);
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    startServer().catch((error) => {
+        console.error("Unable to start server:", error);
+        process.exit(1);
+    });
+    startAlertScheduler(60_000);
+}
+export default handler;
