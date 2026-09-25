@@ -31,7 +31,7 @@ export async function resolveAvailablePort(preferredPort: number): Promise<numbe
         tester.close(() => resolve(portNumber));
       });
 
-      tester.listen({ port, host: "127.0.0.1" });
+      tester.listen({ port, host: "0.0.0.0" });
     };
 
     tryPort(startPort);

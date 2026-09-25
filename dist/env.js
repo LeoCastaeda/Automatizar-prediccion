@@ -22,7 +22,7 @@ export async function resolveAvailablePort(preferredPort) {
                 const portNumber = typeof address === "object" && address ? address.port : port;
                 tester.close(() => resolve(portNumber));
             });
-            tester.listen({ port, host: "127.0.0.1" });
+            tester.listen({ port, host: "0.0.0.0" });
         };
         tryPort(startPort);
     });
