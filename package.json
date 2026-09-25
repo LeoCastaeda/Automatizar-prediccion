@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "npx tsx watch server.ts",
-    "build": "npx tsc -p .",
+    "build": "npx prisma generate && npx tsc -p .",
     "start": "node dist/server.js",
+    "postinstall": "npx prisma generate",
     "test": "npx vitest --run",
     "test:watch": "npx vitest",
     "prisma:generate": "npx prisma generate",
