@@ -38,9 +38,10 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 async function startServer() {
-  const port = await resolveAvailablePort(ENV.PORT);
+  const preferredPort = Number(process.env.PORT || ENV.PORT || 3000);
+  const port = process.env.PORT ? preferredPort : await resolveAvailablePort(preferredPort);
 
-  app.listen(port, () => {
+  app.listen(port, "0.0.0.0", () => {
     console.log(`Server listening on http://localhost:${port}`);
   });
 }

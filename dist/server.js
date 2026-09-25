@@ -30,8 +30,9 @@ app.use((err, _req, res, _next) => {
     res.status(status).json({ error: message });
 });
 async function startServer() {
-    const port = await resolveAvailablePort(ENV.PORT);
-    app.listen(port, () => {
+    const preferredPort = Number(process.env.PORT || ENV.PORT || 3000);
+    const port = process.env.PORT ? preferredPort : await resolveAvailablePort(preferredPort);
+    app.listen(port, "0.0.0.0", () => {
         console.log(`Server listening on http://localhost:${port}`);
     });
 }
