@@ -1,13 +1,13 @@
-import "./env";
+import "./env.js";
 import express, { Request, Response, NextFunction } from "express";
-import { ENV } from "./env";
-import pricesRoute from "./prices.route";
-import alertsRoute from "./alerts.route";
-import usersRoute from "./users.route";
-import { apiKeyGuard } from "./auth";
-import { HttpError } from "./errors";
-import { runPriceChecker } from "./priceChecker";
-import { historicalRouter } from "./historical.route";
+import { ENV, resolveAvailablePort } from "./env.js";
+import pricesRoute from "./prices.route.js";
+import alertsRoute from "./alerts.route.js";
+import usersRoute from "./users.route.js";
+import { apiKeyGuard } from "./auth.js";
+import { HttpError } from "./errors.js";
+import { historicalRouter } from "./historical.route.js";
+import { startAlertScheduler } from "./scheduler.js";
 
 const app = express();
 app.use(express.json());
@@ -36,11 +36,17 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ error: message });
 });
 
-app.listen(ENV.PORT, () => {
-  console.log(`Server listening on http://localhost:${ENV.PORT}`);
+async function startServer() {
+  const port = await resolveAvailablePort(ENV.PORT);
+
+  app.listen(port, () => {
+    console.log(`Server listening on http://localhost:${port}`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Unable to start server:", error);
+  process.exit(1);
 });
 
-// Job en intervalo (cada 60s). En producción, usa un scheduler/cron real.
-setInterval(() => {
-  runPriceChecker().catch(() => {});
-}, 60_000);
+startAlertScheduler(60_000);

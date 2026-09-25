@@ -17,7 +17,9 @@ import { PrismaClient } from '@prisma/client';
  * After the fix is implemented, these same tests will be re-run to ensure
  * no regressions were introduced.
  */
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    datasourceUrl: process.env.DATABASE_URL,
+});
 // Test user ID for isolation
 const TEST_USER_ID = 999999;
 // AlertType constants (since SQLite uses strings, not enums)
