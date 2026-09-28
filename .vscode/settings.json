@@ -1,2 +1,10 @@
 {
+  "files.exclude": {
+    "**/.prisma/**": true,
+    "**/node_modules/**": true
+  },
+  "search.exclude": {
+    "**/.prisma/**": true,
+    "**/node_modules/**": true
+  }
 }
