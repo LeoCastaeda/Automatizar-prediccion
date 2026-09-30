@@ -6,5 +6,6 @@
   "search.exclude": {
     "**/.prisma/**": true,
     "**/node_modules/**": true
-  }
+  },
+  "prisma.pinToPrisma6": true
 }
