@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { apiKeyGuard, getRequestAuthToken, isValidApiKey } from "./auth.js";
+import { apiKeyGuard, getRequestAuthToken, isValidApiKey, issuePanelSession, panelSessionGuard } from "./auth.js";
 function makeRequest(headers = {}, path = "/api/prices", method = "GET") {
     return {
         method,
         path,
         header: (name) => headers[name.toLowerCase()] ?? headers[name] ?? undefined,
+        secure: false,
     };
 }
 function makeResponse() {
@@ -18,6 +19,11 @@ function makeResponse() {
     };
     res.json = (payload) => {
         res.payload = payload;
+        return res;
+    };
+    res.cookie = (name, value, options) => {
+        res.cookieValue = value;
+        res.cookieOptions = options;
         return res;
     };
     return res;
@@ -58,5 +64,35 @@ describe("auth middleware", () => {
         expect(isValidApiKey("secret-key")).toBe(true);
         expect(isValidApiKey("other-key")).toBe(false);
         expect(isValidApiKey(null)).toBe(false);
+    });
+    it("issues an HttpOnly panel session and accepts it only from the same origin", () => {
+        const issueResponse = makeResponse();
+        issuePanelSession(makeRequest({ "x-forwarded-proto": "https" }), issueResponse, () => { });
+        expect(issueResponse.cookieOptions).toMatchObject({
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            path: "/internal"
+        });
+        expect(issueResponse.cookieValue).not.toContain("secret-key");
+        let nextCalled = false;
+        const sameOriginRequest = makeRequest({
+            cookie: `panel_session=${issueResponse.cookieValue}`,
+            origin: "https://panel.example",
+            host: "panel.example",
+            "sec-fetch-site": "same-origin"
+        });
+        panelSessionGuard(sameOriginRequest, makeResponse(), () => {
+            nextCalled = true;
+        });
+        expect(nextCalled).toBe(true);
+        const crossOriginResponse = makeResponse();
+        panelSessionGuard(makeRequest({
+            cookie: `panel_session=${issueResponse.cookieValue}`,
+            origin: "https://other.example",
+            host: "panel.example",
+            "sec-fetch-site": "same-origin"
+        }), crossOriginResponse, () => { });
+        expect(crossOriginResponse.code).toBe(403);
     });
 });

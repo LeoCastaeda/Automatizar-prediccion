@@ -468,14 +468,6 @@
       </div>
     </header>
 
-    <section class="panel toolbar">
-      <div class="field">
-        <label for="apiKey">Clave API</label>
-        <input id="apiKey" type="password" autocomplete="off" placeholder="Introduce tu x-api-key" />
-      </div>
-      <button id="connectBtn" type="button">Conectar</button>
-    </section>
-
     <div id="message" class="notice hidden" role="alert"></div>
 
     <section class="stats">
@@ -500,7 +492,7 @@
           <p>Valores en USD</p>
         </div>
         <div id="pricesGrid" class="price-grid">
-          <div class="empty-state">Conecta la API para cargar precios.</div>
+          <div class="empty-state">Cargando precios...</div>
         </div>
       </section>
 
@@ -588,14 +580,11 @@
 
   <script>
     const state = {
-      apiKey: sessionStorage.getItem('crypto-api-key') || '',
       selectedUserId: null,
       users: []
     };
 
     const els = {
-      apiKey: document.getElementById('apiKey'),
-      connectBtn: document.getElementById('connectBtn'),
       statusDot: document.getElementById('statusDot'),
       statusText: document.getElementById('statusText'),
       message: document.getElementById('message'),
@@ -615,8 +604,6 @@
       percentage: document.getElementById('percentage'),
       symbol: document.getElementById('symbol')
     };
-
-    els.apiKey.value = state.apiKey;
 
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
       '&': '&amp;',
@@ -645,25 +632,33 @@
     const setStatus = (connected) => {
       els.statusDot.classList.toggle('live', connected);
       els.statusText.textContent = connected ? 'API conectada' : 'API sin conectar';
+      state.connected = connected;
     };
 
     async function api(path, options = {}) {
-      if (!state.apiKey) {
-        throw new Error('Introduce la clave API para continuar.');
+      let response;
+      try {
+        response = await fetch('/internal' + path, {
+          ...options,
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          }
+        });
+      } catch {
+        throw new Error('No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.');
       }
-
-      const response = await fetch('/api' + path, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': state.apiKey,
-          ...(options.headers || {})
-        }
-      });
 
       const payload = await response.json().catch(() => ({ error: 'Respuesta no válida del servidor' }));
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('La sesión del panel ha caducado. Recarga la página para continuar.');
+        }
+        if (response.status >= 500) {
+          throw new Error('El servicio no está disponible temporalmente. Inténtalo de nuevo más tarde.');
+        }
         throw new Error(payload.error || 'La solicitud no se pudo completar.');
       }
 
@@ -726,12 +721,6 @@
     async function loadUsers() {
       const { users } = await api('/users');
       state.users = users;
-
-      if (!state.selectedUserId && users.length) {
-        selectUser(users[0].id);
-        return;
-      }
-
       renderUsers();
     }
 
@@ -801,19 +790,19 @@
       }
     }
 
-    els.connectBtn.addEventListener('click', async () => {
-      state.apiKey = els.apiKey.value.trim();
-      sessionStorage.setItem('crypto-api-key', state.apiKey);
-
+    async function initialize() {
       try {
         await Promise.all([loadUsers(), loadPrices()]);
+        if (state.users.length) {
+          await selectUser(state.users[0].id);
+        }
         setStatus(true);
         showNotice('Conexión realizada correctamente.', 'success');
       } catch (error) {
         setStatus(false);
-        showNotice(error.message);
+        showNotice(error instanceof Error ? error.message : 'No se pudo conectar con el servicio.');
       }
-    });
+    }
 
     els.userForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -887,13 +876,10 @@
     });
 
     setStatus(false);
-
-    if (state.apiKey) {
-      Promise.all([loadUsers(), loadPrices()]).then(() => setStatus(true)).catch(() => setStatus(false));
-    }
+    initialize();
 
     setInterval(() => {
-      if (state.apiKey) {
+      if (state.connected) {
         loadPrices().catch(() => {});
       }
     }, 60000);

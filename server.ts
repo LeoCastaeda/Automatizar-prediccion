@@ -1,17 +1,23 @@
 import "./env.js";
 import express, { Request, Response, NextFunction } from "express";
+import { resolve } from "node:path";
 import serverless from "serverless-http";
 import { ENV, resolveAvailablePort } from "./env.js";
 import pricesRoute from "./prices.route.js";
 import alertsRoute from "./alerts.route.js";
 import usersRoute from "./users.route.js";
-import { apiKeyGuard } from "./auth.js";
+import { apiKeyGuard, issuePanelSession, panelSessionGuard } from "./auth.js";
 import { HttpError } from "./errors.js";
 import { historicalRouter } from "./historical.route.js";
 import { startAlertScheduler } from "./scheduler.js";
 
 const app = express();
 app.use(express.json());
+
+app.get("/", issuePanelSession, (_req: Request, res: Response) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.sendFile(resolve("public/index.html"));
+});
 
 // Serve static files from public directory
 app.use(express.static("public"));
@@ -27,6 +33,12 @@ app.use("/api/prices", pricesRoute);
 app.use("/api/historical", historicalRouter);
 app.use("/api/alerts", alertsRoute);
 app.use("/api/users", usersRoute);
+
+app.use("/internal", panelSessionGuard);
+app.use("/internal/prices", pricesRoute);
+app.use("/internal/historical", historicalRouter);
+app.use("/internal/alerts", alertsRoute);
+app.use("/internal/users", usersRoute);
 
 // Manejo de errores
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

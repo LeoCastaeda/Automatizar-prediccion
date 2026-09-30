@@ -29,7 +29,6 @@ export async function resolveAvailablePort(preferredPort) {
 }
 export const ENV = {
     PORT: parseInt(process.env.PORT || "3000", 10),
-    API_KEY: process.env.API_KEY || "",
     SMTP: {
         HOST: process.env.SMTP_HOST || "",
         PORT: parseInt(process.env.SMTP_PORT || "587", 10),
