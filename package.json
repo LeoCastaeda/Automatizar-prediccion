@@ -3,15 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
-    "dev": "npx tsx watch server.ts",
-    "build": "npx prisma generate && npx tsc -p .",
+    "dev": "tsx watch server.ts",
+    "build": "prisma generate && tsc -p .",
     "start": "node dist/server.js",
-    "test": "npx vitest --run",
-    "test:watch": "npx vitest",
-    "prisma:generate": "npx prisma generate",
-    "prisma:migrate": "npx prisma migrate dev",
-    "prisma:deploy": "npx prisma migrate deploy"
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "6.12.0",
